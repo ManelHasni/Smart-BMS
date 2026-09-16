@@ -1,0 +1,6 @@
+PySide6
+pyqtgraph
+joblib
+scikit-learn
+numpy
+reportlab

@@ -1,0 +1,48 @@
+2026-08-16 19:12:39,335  INFO  Etat -> Emballement thermique
+2026-08-16 19:13:00,375  INFO  Commutateur ChgMos -> OFF
+2026-08-16 19:14:06,970  INFO  Declenchement protection: over_temperature
+2026-08-16 19:14:22,907  INFO  Commutateur DisMos -> OFF
+2026-08-16 19:14:27,441  INFO  Commutateur ChgMos -> ON
+2026-08-16 19:14:32,163  INFO  Etat -> Resistance anormale
+2026-08-16 19:14:48,585  INFO  Session reinitialisee
+2026-08-16 19:15:11,457  INFO  Etat -> Surtension de charge
+2026-08-16 19:16:43,495  INFO  Etat -> Emballement thermique
+2026-08-16 19:16:55,441  INFO  Commutateur ChgMos -> OFF
+2026-08-16 19:16:55,857  INFO  Commutateur DisMos -> ON
+2026-08-16 19:17:14,168  INFO  Etat -> Surtension de charge
+2026-08-16 19:17:20,618  INFO  Declenchement protection: cell_overvoltage
+2026-08-16 19:17:28,613  INFO  Declenchement protection: cell_overvoltage
+2026-08-16 19:17:36,867  INFO  Etat -> Desequilibre cellulaire
+2026-08-16 19:18:38,742  INFO  Seuils de protection mis a jour (PIN valide)
+2026-08-16 19:18:55,048  INFO  PIN de protection modifie
+2026-08-16 19:19:00,333  INFO  Historique des declenchements reinitialise
+2026-08-16 19:19:19,327  INFO  Etat -> Emballement thermique
+2026-08-16 19:20:06,681  INFO  Etat -> Resistance anormale
+2026-08-16 19:20:15,529  INFO  Commutateur ChgMos -> ON
+2026-08-16 19:20:16,308  INFO  Commutateur DisMos -> OFF
+2026-08-16 19:20:34,351  INFO  Rapport PDF exporte -> rapport_bms_20260816_192031.pdf
+2026-08-16 19:20:53,036  INFO  Donnees CSV exportees -> bms_data_20260816_192051.csv (266 lignes)
+2026-08-16 19:43:02,693  INFO  Etat -> Emballement thermique
+2026-08-16 19:43:38,759  INFO  Commutateur ChgMos -> OFF
+2026-08-16 19:43:39,192  INFO  Commutateur DisMos -> ON
+2026-08-16 19:43:51,864  INFO  Etat -> Surtension de charge
+2026-08-16 19:44:17,762  INFO  Etat -> Resistance anormale
+2026-08-16 19:44:53,783  INFO  Etat -> Surtension de charge
+2026-08-16 19:45:03,162  INFO  Commutateur DisMos -> OFF
+2026-08-16 19:45:03,750  INFO  Commutateur ChgMos -> ON
+2026-08-16 19:45:45,081  INFO  Tentative de modification des seuils refusee (PIN incorrect)
+2026-08-16 19:45:50,238  INFO  Seuils de protection mis a jour (PIN valide)
+2026-08-16 19:45:52,149  INFO  Declenchement protection: cell_overvoltage
+2026-08-16 19:45:55,407  INFO  Historique des declenchements reinitialise
+2026-08-16 19:45:57,145  INFO  Declenchement protection: cell_overvoltage
+2026-08-16 19:46:06,158  INFO  Declenchement protection: cell_overvoltage
+2026-08-16 19:46:20,432  INFO  Rapport PDF exporte -> rapport_bms_20260816_192031.pdf
+2026-08-16 19:46:26,212  INFO  Declenchement protection: cell_overvoltage
+2026-08-16 19:46:37,261  INFO  Declenchement protection: cell_overvoltage
+2026-08-16 19:46:41,924  INFO  Donnees CSV exportees -> bms_data_20260816_194640.csv (233 lignes)
+2026-08-16 19:46:44,300  INFO  Declenchement protection: cell_overvoltage
+2026-08-16 19:46:55,339  INFO  Declenchement protection: cell_overvoltage
+2026-08-16 19:47:00,346  INFO  Declenchement protection: cell_overvoltage
+2026-08-16 19:47:04,363  INFO  Declenchement protection: cell_overvoltage
+2026-08-16 19:47:08,393  INFO  Declenchement protection: cell_overvoltage
+2026-08-16 19:47:13,407  INFO  Declenchement protection: cell_overvoltage
