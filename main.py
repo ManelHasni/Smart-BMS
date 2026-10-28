@@ -85,15 +85,34 @@ APP_VERSION = "1.2.0"
 APP_BUILD_DATE = "2026-08-16"
 ICON_PATH = BASE_DIR / "assets" / "icon.png"
 
-# --- Palette ---
-BG = "#0B0F0D"
-SURFACE = "#131A17"
-BORDER = "#1C2620"
-TEXT = "#E8F5EE"
-MUTED = "#7C9686"
-DIM = "#4E625A"
-GREEN = "#59F2A0"
-COPPER = "#D98E4A"
+# --- Palette (theme sombre/clair, commutable a chaud sans redemarrage) ---
+THEMES = {
+    "dark": {
+        "BG": "#0B0F0D", "SURFACE": "#131A17", "BORDER": "#1C2620",
+        "TEXT": "#E8F5EE", "MUTED": "#7C9686", "DIM": "#4E625A",
+        "GREEN": "#59F2A0", "COPPER": "#D98E4A",
+    },
+    "light": {
+        "BG": "#F5F7F6", "SURFACE": "#FFFFFF", "BORDER": "#DCE3DF",
+        "TEXT": "#152018", "MUTED": "#5B6B63", "DIM": "#8B9A93",
+        "GREEN": "#1E9E5A", "COPPER": "#B5651D",
+    },
+}
+BG = SURFACE = BORDER = TEXT = MUTED = DIM = GREEN = COPPER = None
+
+
+def apply_theme(name: str):
+    """Bascule la palette globale. A appeler AVANT (re)construction de l'UI : toutes
+    les f-strings de style lisent ces constantes au moment ou les widgets sont crees,
+    donc un rebuild complet de l'UI suffit a appliquer le nouveau theme partout."""
+    global BG, SURFACE, BORDER, TEXT, MUTED, DIM, GREEN, COPPER
+    p = THEMES.get(name, THEMES["dark"])
+    BG, SURFACE, BORDER = p["BG"], p["SURFACE"], p["BORDER"]
+    TEXT, MUTED, DIM = p["TEXT"], p["MUTED"], p["DIM"]
+    GREEN, COPPER = p["GREEN"], p["COPPER"]
+
+
+apply_theme("dark")
 
 FEATURE_ORDER = [
     "pack_v_mean", "v_cell_mean", "v_cell_std", "v_cell_min", "v_cell_max",
@@ -257,11 +276,13 @@ class FleetPack:
 class FleetCard(QFrame):
     """Carte resumee d'un pack de la flotte (nom, statut, SOC/SOH, temperature)."""
 
-    STATUS_STYLE = {
-        "normal": (GREEN, "Normal"),
-        "surveillance": ("#F5B942", "Surveillance"),
-        "alarme": ("#FF5C4D", "Alarme"),
-    }
+    @staticmethod
+    def _status_style():
+        return {
+            "normal": (GREEN, "Normal"),
+            "surveillance": ("#F5B942", "Surveillance"),
+            "alarme": ("#FF5C4D", "Alarme"),
+        }
 
     def __init__(self, name):
         super().__init__()
@@ -303,7 +324,7 @@ class FleetCard(QFrame):
         return val
 
     def update_data(self, data):
-        color, label = self.STATUS_STYLE.get(data["status"], (MUTED, "?"))
+        color, label = self._status_style().get(data["status"], (MUTED, "?"))
         self.status_lbl.setText(label)
         self.status_lbl.setStyleSheet(f"color:{color}; font-size:10px; font-weight:bold; border:none;")
         self.setStyleSheet(f"background:{SURFACE}; border:1px solid {color if data['status']!='normal' else BORDER}; border-radius:8px;")
@@ -328,7 +349,8 @@ class MetricCard(QFrame):
         layout.addWidget(self.title_lbl)
         layout.addWidget(self.value_lbl)
 
-    def set_value(self, value, color=TEXT):
+    def set_value(self, value, color=None):
+        color = color or TEXT
         self.value_lbl.setText(f"{value}{self.unit}")
         self.value_lbl.setStyleSheet(f"color:{color}; font-size:16px; font-family:Consolas; border:none;")
 
@@ -373,6 +395,13 @@ class MainWindow(QMainWindow):
         self.scaler = joblib.load(BASE_DIR / "battery_scaler.pkl")
 
         self.settings = QSettings("Akkurad", "SmartBMS")
+
+        self.current_theme = self.settings.value("appearance/theme", "dark")
+        if self.current_theme not in THEMES:
+            self.current_theme = "dark"
+        apply_theme(self.current_theme)
+        self.setStyleSheet(f"background:{BG}; color:{TEXT};")
+        self._current_nav_key = "diagnostic"
 
         saved_chemistry = self.settings.value("chemistry/selected", "liion")
         if saved_chemistry not in CHEMISTRIES:
@@ -477,6 +506,15 @@ class MainWindow(QMainWindow):
 
         self._build_ui()
 
+        # Raccourcis clavier : crees UNE SEULE FOIS ici (pas dans _build_ui).
+        QShortcut(QKeySequence("Ctrl+E"), self, activated=self._export_pdf)
+        QShortcut(QKeySequence("Ctrl+Shift+E"), self, activated=self._export_csv)
+        QShortcut(QKeySequence("Ctrl+1"), self, activated=lambda: self._navigate_to("diagnostic"))
+        QShortcut(QKeySequence("Ctrl+2"), self, activated=lambda: self._navigate_to("configuration"))
+        QShortcut(QKeySequence("Ctrl+3"), self, activated=lambda: self._navigate_to("reports"))
+        QShortcut(QKeySequence("Ctrl+4"), self, activated=lambda: self._navigate_to("fleet"))
+        QShortcut(QKeySequence("Ctrl+T"), self, activated=self._toggle_theme)
+
         self.timer = QTimer()
         self.timer.timeout.connect(self._step)
         self.timer.start(1000)
@@ -532,6 +570,21 @@ class MainWindow(QMainWindow):
         about_btn.setToolTip("A propos de Smart BMS")
         about_btn.clicked.connect(lambda: AboutDialog(self).exec())
         header.addWidget(about_btn, alignment=Qt.AlignVCenter)
+
+        self.theme_btn = QPushButton()
+        set_button_icon(self.theme_btn, "sun" if self.current_theme == "dark" else "moon", MUTED, size=15, bg=SURFACE)
+        self.theme_btn.setCursor(Qt.PointingHandCursor)
+        self.theme_btn.setFixedSize(30, 30)
+        self.theme_btn.setStyleSheet(f"""
+            QPushButton {{
+                background:{SURFACE}; border:1px solid {BORDER};
+                border-radius:15px; margin-left:6px;
+            }}
+            QPushButton:hover {{ border-color:{COPPER}; }}
+        """)
+        self.theme_btn.setToolTip("Changer de theme (Ctrl+T)")
+        self.theme_btn.clicked.connect(self._toggle_theme)
+        header.addWidget(self.theme_btn, alignment=Qt.AlignVCenter)
 
         legend_btn = QPushButton()
         set_button_icon(legend_btn, "help-circle", MUTED, size=15, bg=SURFACE)
@@ -594,7 +647,7 @@ class MainWindow(QMainWindow):
         scenario_bar_layout.setSpacing(8)
 
         scenario_icon_lbl = QLabel()
-        scenario_icon_lbl.setPixmap(icon_pixmap("sliders", MUTED, 13))
+        scenario_icon_lbl.setPixmap(icon_pixmap("sliders", MUTED, 13, bg=SURFACE))
         scenario_icon_lbl.setStyleSheet("background:transparent; border:none;")
         scenario_bar_layout.addWidget(scenario_icon_lbl)
 
@@ -1325,18 +1378,15 @@ class MainWindow(QMainWindow):
         fleet_tab_layout.addStretch()
         self.stack.addWidget(self._scrollable(fleet_tab))
 
-        # -- Raccourcis clavier (detail pro apprecie en demo live) --
-        QShortcut(QKeySequence("Ctrl+E"), self, activated=self._export_pdf)
-        QShortcut(QKeySequence("Ctrl+Shift+E"), self, activated=self._export_csv)
-        QShortcut(QKeySequence("Ctrl+1"), self, activated=lambda: self._navigate_to("diagnostic"))
-        QShortcut(QKeySequence("Ctrl+2"), self, activated=lambda: self._navigate_to("configuration"))
-        QShortcut(QKeySequence("Ctrl+3"), self, activated=lambda: self._navigate_to("reports"))
-        QShortcut(QKeySequence("Ctrl+4"), self, activated=lambda: self._navigate_to("fleet"))
+        # Restaure la page active si on reconstruit l'UI (ex: changement de theme)
+        if hasattr(self, "_current_nav_key"):
+            self._navigate_to(self._current_nav_key)
 
     def _navigate_to(self, key):
         """Bascule vers une page entiere (QStackedWidget), et met a jour le style
         de la barre de navigation en consequence."""
         idx = self._nav_order.index(key)
+        self._current_nav_key = key
         self.stack.setCurrentIndex(idx)
         NAV_ICONS = {"diagnostic": "activity", "configuration": "gear", "reports": "file-text", "fleet": "grid"}
         for k, btn in self.nav_buttons.items():
@@ -1344,6 +1394,26 @@ class MainWindow(QMainWindow):
             btn.setStyleSheet(self._nav_button_style(active=active))
             set_button_icon(btn, NAV_ICONS[k], TEXT if active else MUTED, size=14,
                              bg=SURFACE if active else BG)
+
+    def _toggle_theme(self):
+        """Bascule sombre <-> clair a chaud : change la palette, sauvegarde le choix puis
+        reconstruit l'interface (setCentralWidget libere l'ancienne). L'etat metier
+        (simulateur, historiques, compteurs, timer) n'est pas touche."""
+        self.current_theme = "light" if self.current_theme == "dark" else "dark"
+        self.settings.setValue("appearance/theme", self.current_theme)
+        apply_theme(self.current_theme)
+        self.setStyleSheet(f"background:{BG}; color:{TEXT};")
+        self._build_ui()
+        self._resync_ui_after_rebuild()
+        self._log(f"Theme -> {'clair' if self.current_theme == 'light' else 'sombre'}")
+
+    def _resync_ui_after_rebuild(self):
+        """Les widgets reconstruits repartent a zero : on reaffiche l'etat courant."""
+        for key, count in self.protection_events.items():
+            if key in self.event_labels:
+                self.event_labels[key].setText(str(count))
+        self._update_alarm_badge()
+        self._set_scenario(self.sim.scenario)
 
     def _nav_button_style(self, active):
         if active:
@@ -2332,18 +2402,18 @@ class LegendDialog(QDialog):
     evite toute question en soutenance sur 'pourquoi cette bordure est bleue'."""
 
     ENTRIES = [
-        ("battery", GREEN, "Cellule en etat normal"),
+        ("battery", "GREEN", "Cellule en etat normal"),
         ("battery", "#F5B942", "Cellule proche d'un seuil (surveillance)"),
         ("battery", "#FF5C4D", "Cellule hors seuil (defaut confirme)"),
         ("info", "#7CC3F5", "Borne bleue = cellule a la tension la plus haute (Vmax)"),
         ("info", "#B388FF", "Borne violette = cellule a la tension la plus basse (Vmin)"),
         ("refresh-cw", "#F5B942", "Anneau ambre = cellule en cours d'equilibrage (AutoBalance)"),
-        ("check-circle", GREEN, "Badge NORMAL : aucune anomalie detectee"),
+        ("check-circle", "GREEN", "Badge NORMAL : aucune anomalie detectee"),
         ("alert-triangle", "#F5B942", "Badge SURVEILLANCE : tendance anormale, pas encore confirmee"),
         ("alert-triangle", "#FF5C4D", "Badge ALARME : defaut confirme, action requise"),
-        ("trending-down", COPPER, "Courbe pleine = SOH mesure ; pointilles ambres = projection RUL"),
+        ("trending-down", "COPPER", "Courbe pleine = SOH mesure ; pointilles ambres = projection RUL"),
         ("trending-down", "#FF5C4D", "Ligne rouge pointillee = seuil de fin de vie (80% SOH)"),
-        ("lock", MUTED, "Action protegee par code PIN (seuils, chimie, maintenance)"),
+        ("lock", "MUTED", "Action protegee par code PIN (seuils, chimie, maintenance)"),
     ]
 
     def __init__(self, parent=None):
@@ -2360,6 +2430,7 @@ class LegendDialog(QDialog):
         layout.addWidget(title)
 
         for icon_name, color, text in self.ENTRIES:
+            color = globals().get(color, color)
             row = QHBoxLayout()
             icon_lbl = QLabel()
             icon_lbl.setPixmap(icon_pixmap(icon_name, color, 16, bg=BG))

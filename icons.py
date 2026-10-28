@@ -62,6 +62,8 @@ ICONS = {
     "layers": '<polygon points="12 2 22 8 12 14 2 8"/><polyline points="2 15 12 21 22 15"/><polyline points="2 11.5 12 17.5 22 11.5"/>',
     "save": '<path d="M5 3h11l3 3v15H5z"/><rect x="8" y="3" width="8" height="6"/><rect x="7" y="14" width="10" height="7"/>',
     "help-circle": '<circle cx="12" cy="12" r="9.3"/><path d="M9.2 9.2a2.8 2.8 0 1 1 4.6 2.1c-.9.7-1.6 1.3-1.6 2.4"/><circle cx="12" cy="17.2" r="0.9" fill="{color}" stroke="none"/>',
+    "sun": '<circle cx="12" cy="12" r="4.2"/><line x1="12" y1="2" x2="12" y2="4.5"/><line x1="12" y1="19.5" x2="12" y2="22"/><line x1="2" y1="12" x2="4.5" y2="12"/><line x1="19.5" y1="12" x2="22" y2="12"/><line x1="4.9" y1="4.9" x2="6.6" y2="6.6"/><line x1="17.4" y1="17.4" x2="19.1" y2="19.1"/><line x1="4.9" y1="19.1" x2="6.6" y2="17.4"/><line x1="17.4" y1="6.6" x2="19.1" y2="4.9"/>',
+    "moon": '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z" fill="{color}" stroke="none"/>',
 }
 
 
